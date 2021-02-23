@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-macross
+  namespace: profile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: profile-macross
+      metadata: profile-macross
+  template:
+    metadata:
+      labels:
+        name: profile-macross
+        metadata: profile-macross
+    spec:
+      containers:
+      - name: profile-macross
+        image: 362479247581.dkr.ecr.ap-southeast-1.amazonaws.com/macrossprofile:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-macross
+  namespace: profile
+spec:
+  #type: LoadBalancer
+  ports:
+    - port: 80
+      #nodePort: 30080
+  selector:
+    name: profile-macross
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: profile-tls-ingress
+  namespace: profile
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/acme-challenge-type: "http01"	
+    cert-manager.io/cluster-issuer: "letsencrypt-profile"
+spec:
+  tls:
+    - hosts:
+      - profile.hansluber.com
+      secretName: profile-macross-tls
+  rules:
+  - host: profile.hansluber.com
+    http:
+      paths:
+      - backend:
+          serviceName: profile-macross
+          servicePort: 80
+        path: /

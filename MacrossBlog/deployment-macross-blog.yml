@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-macross
+  namespace: blog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: blog-macross
+      metadata: blog-macross
+  template:
+    metadata:
+      labels:
+        name: blog-macross
+        metadata: blog-macross
+    spec:
+      containers:
+      - name: blog-macross
+        image: 362479247581.dkr.ecr.ap-southeast-1.amazonaws.com/macrossblog:latest
+        ports:
+        - containerPort: 80
+        env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secretblog
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: secretblog
+                  key: DB_PASS
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secretblog
+                  key: DB_HOST  
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: secretblog
+                  key: DB_NAME  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-macross
+  namespace: blog
+spec:
+  #type: LoadBalancer
+  ports:
+    - port: 80
+      #nodePort: 30080
+  selector:
+    name: blog-macross
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: blog-tls-ingress
+  namespace: blog
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/acme-challenge-type: "http01"	
+    cert-manager.io/cluster-issuer: "letsencrypt-blog"
+spec:
+  tls:
+    - hosts:
+      - bloghansluber.com
+      secretName: blog-macross-tls
+  rules:
+  - host: blog.hansluber.com
+    http:
+      paths:
+      - backend:
+          serviceName: blog-macross
+          servicePort: 80
+        path: /

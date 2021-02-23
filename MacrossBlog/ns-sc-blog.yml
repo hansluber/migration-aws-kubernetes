@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blog
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secretblog
+  namespace: blog
+type: Opaque
+data:
+  DB_USER: YWRtaW4=
+  DB_PASS: cGFzc3dvcmQqMTIz
+  DB_HOST: bWFjcm9zcy1yZHMuY3Z4ZGZhcWoyaHh6LmFwLXNvdXRoZWFzdC0xLnJkcy5hbWF6b25hd3MuY29t
+  DB_NAME: ZGJibG9n
